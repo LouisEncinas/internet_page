@@ -1,0 +1,16 @@
+.content {
+    padding-top: 30px;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.content__title {
+    border-bottom: 4px solid rgb(213,45,60);
+    display: inline;
+}
+
+.content__presentation {
+    text-align: left;
+}

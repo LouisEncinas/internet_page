@@ -1,0 +1,32 @@
+.chess-board 
+{
+    border-spacing: 0;
+    border-collapse: collapse;
+}
+
+.chess-board th
+{
+    padding: .5em;
+}
+
+.chess-board td
+{
+    border: 1px solid;
+    width: 100px;
+    height: 100px;
+}
+
+.chess-board .light
+{
+    background: rgb(255, 255, 255);
+}
+
+.chess-board .dark
+{
+    background: rgb(40, 40, 40);
+}
+
+.piece
+{
+    max-width: 100%;
+}

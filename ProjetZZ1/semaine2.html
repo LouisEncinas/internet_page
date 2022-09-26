@@ -1,0 +1,222 @@
+<!doctype html>
+<html>
+    <head>
+        <link rel="stylesheet" href="../public/css/style.css" >
+        <title>Deuxi&egrave;me semaine</title>
+    </head>
+    <body>
+        <header>
+            <h1 class="tete">Deuxi&egrave;me semaine du Projet<br></h1>
+        </header>
+        <nav>
+        <ul class="menu">
+            <li><a href="../index.html">Accueil</a></li>
+            <li><a href="accueil.html">Accueil Projet</a></li>
+            <li><a href="semaine1.html">Semaine 1</a></li>
+            <li><a href="semaine2.html" class="actif">Semaine 2</a></li>
+            <li><a href="https://gitlab.isima.fr/thchatry/projetfinalzz1">Notre Git</a></li>
+        </ul>
+        </nav>
+        <nav class="gauche">
+            <ul class="menu_vert">
+               <li><a href="#lundi21">Lundi 21 Juin</a></li>
+               <li><a href="#mardi22">Mardi 22 Juin</a></li>
+               <li><a href="#mercredi23">Mercredi 23 Juin</a></li>
+               <li><a href="#jeudi24">Jeudi 24 Juin</a></li>
+               <li><a href="#vendredi25">Vendredi 25 Juin</a></li>
+            </ul>
+        </nav>
+        <section class="jour">
+            <h1 class="titre_section" id="lundi21">Lundi 21 Juin</h1>
+            <article class="agauche">
+                <h1 class="titre_section">Matin</h1>
+                <p>
+                    Objectif :<br>
+
+                    louis : travailler sur les partitions et appr&eacute;hender l'outil graphviz<br>
+                   
+                   thibault : travailler aussi sur les partitions et graphviz<br>
+                   
+                   niels : impl&eacute;menter la representation par liste de couple d'un graphe<br><br>
+                   
+                   Travail r&eacute;alis&eacute; :<br>
+                   
+                   Louis :  codage des outils pour l'utilisation des partitions et affichage d'arbres avec graphviz<br>
+                   
+                   Thibault :  implementation des partitions arborescentes<br>
+                   
+                   Niels : ajout de la structure par couple d'un graphe , plus efficace que la representation par matrice d'adjacence <br>
+                </p>
+            </article>
+            <article class="adroite">
+                <h1 class="titre_section">Apr&egrave;s-midi</h1>
+                <p>
+                    Objectif :<br>
+
+                    Louis :travailler sur les arbres couvrants de poids minimaux(kruskal)<br>
+                    
+                    Thibault : travailler sur les graphes<br>
+                    
+                    Niels : graphviz<br><br>
+                    
+                    Travail r&eacute;alis&eacute; :<br>
+                    
+                    Louis :d&eacute;but  implementation de kruskal<br>
+                    
+                    Thibault : implementation de la structure de gestion des graphes<br>
+                    
+                    Niels : affichage de graghes avec graphiz depuis la representation par couple <br>
+                </p>
+            </article>
+        </section>
+        <section class="jour">
+            <h1 class="titre_section" id="mardi22">Mardi 22 Juin</h1>
+            <article class="agauche">
+                <h1 class="titre_section">Matin</h1>
+                <p>
+                    Objectif<br>
+
+                    louis : ajouter le fisher yate shuffle et l'utiliser pour cr&eacute;er les labyrinthes<br>
+                   
+                   thibault : travailler sur tas et dijkstra<br>
+                   
+                   Niels : travailler sur dijkstra<br><br>
+                   
+                   travail r&eacute;alis&eacute; :<br>
+                   
+                   Louis : ajout d'une representation graphviz pour les grilles<br>
+                   
+                   Thibault : implementation de dijkstra ( non graphique et avec quelques bug)<br>
+                   
+                   Niels : dijkstra ne marche pas du tout <br>
+                </p>
+            </article>
+            <article class="adroite">
+                <h1 class="titre_section">Apr&egrave;s-midi</h1>
+                <p>
+                    Objectif :<br>
+
+                    Louis : passer d'un graph &agrave; un labyrinthe<br>
+                    
+                    Thibault : terminer dijkstra et avancer kruskal<br>
+                    
+                    Niels : faire marcher dijkstra et commencer A*<br><br>
+                    
+                    Travail r&eacute;alis&eacute; :<br>
+                    
+                    Louis : transformation d'un graphe en matrice, puis de matrice en labyrinthe<br>
+                    
+                                   Ajout de tilsets et optimisation du temps de cr&eacute;ation du labyrinthe<br>
+                    
+                    Thibault : debugage et optimisation de dijkstra, d&eacute;but de travail sur l'agorithme de kruskal<br>
+                    
+                    Niels : dijkstra fonctionne, mais la complexit&eacute; n'est pas bonne , implementation des diff&eacute;rents distances sur A*<br>
+                    
+                     
+                </p>
+            </article>
+        </section>
+        <section class="jour">
+            <h1 class="titre_section" id="mercredi23">Mercredi 23 Juin</h1>
+            <article class="agauche">
+                <h1 class="titre_section">Matin</h1>
+                <p>
+                    Objectif :<br>
+
+                    Louis : travailler sur le parcours en profondeur<br>
+                    
+                    Thibault : terminer kruskal et travailler sur le parcours en profonduer<br>
+                    
+                    Niels : afficher dijkstra et A* dans une matrice puis dans un labyrinth.<br><br>
+                    
+                    Travail r&eacute;alis&eacute; :<br>
+                    
+                    Louis :  ajout de structures pile pour le parcours en profondeur, impl&eacute;mentation du parcours en profondeur non graphique<br>
+                    
+                    Thibault : creation d'un arbre couvrant de poids minimal, mise &agrave; jour du makefile , amelioration de kruskal<br>
+                    
+                    Niels : affichage du comportement de dijkstra et A * dans une matrice ( d'un point A &agrave; un point B ),
+                    
+                    A* ne se comporte pas comme prevu…<br>
+                </p>
+            </article>
+            <article class="adroite">
+                <h1 class="titre_section">Apr&egrave;s-midi</h1>
+                <p>
+                    Objectif :<br>
+
+                    Louis : Continuer sur le  parcours en profondeur et attaquer l'extension du labyrinthe<br>
+                    
+                    Thibault : r&eacute;arangement des fichiers et parcours en profondeur graphique<br>
+                    
+                    Niels : pauffiner A* et chemin dans un labyrinthe<br><br>
+                    
+                    Travail r&eacute;alis&eacute; :<br>
+                    
+                    Louis : visualisation graphique du parcours en profondeur et animation d'un personnage qui parcours le graphe, plus ajout de tilsets pour les murs du labyrinthe<br>
+                    
+                    Thibault : separation des fonctions dans diff&eacute;rents fichiers adapt&eacute;s, mise &agrave; jour du make file et affichage du parcours en profondeur<br>
+                    
+                    Niels : implementation de dijkstra dans le labyrinthe<br>
+                    
+                     
+                </p>
+            </article>
+        </section>
+        <section class="jour">
+            <h1 class="titre_section" id="jeudi24">Jeudi 24 Juin</h1>
+            <article class="agauche">
+                <h1 class="titre_section">Matin</h1>
+                <p>
+                    Objectif :<br>
+
+                    Louis : amelioration de l'extension<br>
+                    
+                    Thibault : faire dijkstra et travailler sur extension<br>
+                    
+                    Niels : faire A* dans le labyrinthe et travailler sur l'extension<br><br>
+                    
+                     
+                    
+                    Travaille  r&eacute;alis&eacute; :<br>
+                    
+                    Louis : mise &agrave; jour de l'extension du labyrinthe : d&eacute;sormais l'objectif et de retenir un chemin dans le labyrinthe et de le refaire en partie dans le noir<br>
+                    
+                    Thibault : ajout de bonhomme pour le parcours du labyrinthe en profondeur et implementation de dijkstra dans un labyrinthe  (aller d'un point A &agrave; un point B)<br>
+                    
+                    Niels : A* ne se comporte toujours pas comme pr&eacute;vu ..., instabilit&eacute; en fonction du type distance utilis&eacute;e.<br>
+                </p>
+            </article>
+            <article class="adroite">
+                <h1 class="titre_section">Apr&egrave;s-midi</h1>
+                <p>
+                    Objectif :<br>
+
+                    Louis : amelioration de l'extension<br>
+                    
+                    Thibault : A*<br>
+                    
+                    Niels : A*<br><br>
+                    
+                    Travail r&eacute;alis&eacute; :<br>
+                    
+                    Louis : ajout de monstres &agrave; &eacute;viter dans le labyrinthe<br>
+                    
+                    Thibault : modification pour passer de dijkstra &agrave; A*, utilisation des trois distances<br>
+                    
+                    Niels : travail avec thibault pour afficher A* dans le labyrinthe.<br>
+                </p>
+            </article>
+        </section>
+        <section class="jour">
+            <h1 class="titre_section" id="vendredi25">Vendredi 25 Juin</h1>
+           
+            <article class="agauche">
+                <p>
+                    Objectif commun : terminer l'extension du labyrinthe<br>
+                </p>
+            </article>
+            
+        </section>
+    </body>
+</html>
