@@ -5,20 +5,6 @@
     position: relative;
 }
 
-/*
-.header__texture {
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0;left: 0;
-    background: url('../pic/landes.jpg') center no-repeat;
-    background-size: cover;
-    z-index: 1;
-    opacity: 0.6;
-}
-*/
-
-
 .header__navbar {
     width: 100%;
     height: 120px;

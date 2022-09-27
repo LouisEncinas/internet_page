@@ -1,7 +1,7 @@
-var board = null
 var game = new Chess()
 
-function onDragStart (source, piece, position, orientation) {
+function onDragStart (source, piece, position, orientation)
+{
   // do not pick up pieces if the game is over
   if (game.game_over()) return false
 
@@ -12,7 +12,8 @@ function onDragStart (source, piece, position, orientation) {
   }
 }
 
-function onDrop (source, target) {
+function onDrop (source, target)
+{
   // see if the move is legal
   var move = game.move({
     from: source,
@@ -26,7 +27,8 @@ function onDrop (source, target) {
 
 // update the board position after the piece snap
 // for castling, en passant, pawn promotion
-function onSnapEnd () {
+function onSnapEnd ()
+{
   board.position(game.fen())
 }
 
@@ -37,6 +39,21 @@ var config = {
   onDrop: onDrop,
   onSnapEnd: onSnapEnd
 }
-board = Chessboard('myBoard', config)
 
-updateStatus()
+var board = Chessboard('myBoard', config)
+
+function reset()
+{
+  game.reset()
+  board.start()
+}
+
+function reverseBoard()
+{
+  game.reset()
+  board.start(false)
+  board.flip()
+}
+
+$('#reset').on('click', reset)
+$('#reverse_board').on('click', reverseBoard)
