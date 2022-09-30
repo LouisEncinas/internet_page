@@ -6,10 +6,22 @@ function onDragStart (source, piece, position, orientation)
   if (game.game_over()) return false
 
   // only pick up pieces for the side to move
-  if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
-      (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+  if ((board.orientation() === "white" && piece.search(/^b/) !== -1) ||
+      (board.orientation() === "black" && piece.search(/^w/) !== -1))
+  {
     return false
   }
+}
+
+function makeRandomMove () {
+  var possibleMoves = game.moves()
+
+  // game over
+  if (possibleMoves.length === 0) return
+
+  var randomIdx = Math.floor(Math.random() * possibleMoves.length)
+  game.move(possibleMoves[randomIdx])
+  board.position(game.fen())
 }
 
 function onDrop (source, target)
@@ -23,6 +35,8 @@ function onDrop (source, target)
 
   // illegal move
   if (move === null) return 'snapback'
+
+  window.setTimeout(makeRandomMove, 100)
 }
 
 // update the board position after the piece snap
@@ -53,6 +67,10 @@ function reverseBoard()
   game.reset()
   board.start(false)
   board.flip()
+  if (board.orientation() === "black")
+  {
+    window.setTimeout(makeRandomMove, 100)
+  }
 }
 
 $('#reset').on('click', reset)
