@@ -8,6 +8,7 @@
       <link rel="stylesheet" href="public/css/base.css">
       <link rel="stylesheet" href="public/css/header.css">
       <link rel="stylesheet" href="public/css/content.css">
+      <link rel="stylesheet" href="public/css/contact_window.css">
       <link rel="stylesheet" href="public/css/footer.css">
    </head>
    <body>
@@ -18,14 +19,14 @@
             <div class="header__navbar">
                <div class="header__navbar--logo">
                   <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ"><div class="header__navbar--logo-img"></div></a>
-                  <h1 class="header__navbar--logo-title">Louis Encinas</h1>
+                  <h1 class="header__navbar--logo-title">Bienvenue</h1>
                </div>
                <div class="header__navbar--menu">
                   <a href="index.html" class="header__navbar--menu-link">Accueil</a>
                   <a href="ProjetZZ1/accueil.html" class="header__navbar--menu-link">Projet ZZ1</a>
                   <a href="ProjetZZ2/accueil.html" class="header__navbar--menu-link">Projet ZZ2</a>
                   <a href="chess/chess.html" class="header__navbar--menu-link">Echecs</a>
-                  <a href="" class="header__navbar--menu-link">Me contacter</a>
+                  <button class="contact_button" id="contact_button">Me contacter</button>
                </div>
                <div class="header__navbar--toggle">
                   <span class="header__navbar--toggle-icons"></span>
@@ -36,8 +37,8 @@
 
       <div class="content">
          <div class="container">
-            <h2 class="content__title">&Agrave; propos de moi</h2>
-            <h3 class="content__presentation">Je suis un étudiant ingénieur en informatique à l'ISIMA.
+            <h2 class="content__title">Qu'est-ce que vous trouverez ici ?</h2>
+            <h3 class="content__presentation">Sur ce site, vous trouverez les différents projets que j'ai réalisé, qu'ils soient personnels ou scolaires. Vous trouverez les codes sur mon gitlab (si jamais vous n'y avez pas accès, n'hésitez pas à me contacter).
             </h3>
          </div>
       </div>
@@ -50,6 +51,10 @@
                </div>
             </div>
       </div>
+
+      <dialog class="contact_window" id="contact_window">
+         Test
+      </dialog>
 
       <script
 			  src="https://code.jquery.com/jquery-3.6.0.min.js"

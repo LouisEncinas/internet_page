@@ -37,10 +37,23 @@
     margin-left: 40px;
     color: #fff;
     text-decoration: none;
-    cursor: pointer;
+    cursor: pointer
 }
 
 .header__navbar--menu-link:hover {
+    color: rgb(213,45,60);
+}
+
+.contact_button {
+    margin-left: 40px;
+    color: #fff;
+    text-decoration: none;
+    background-color: rgba(0, 0, 0, 0);
+    cursor: pointer;
+    font-size: 15px;
+}
+
+.contact_button:hover {
     color: rgb(213,45,60);
 }
 
