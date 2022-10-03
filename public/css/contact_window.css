@@ -5,3 +5,18 @@ dialog {
 dialog::backdrop{ 
     background-color: rgba(0, 0, 0, 0.6); 
 } 
+
+.contact_info{
+    margin-left: 20px;
+    margin-left: 20px;
+    margin-bottom: 20px;
+    max-width: 400px;
+}
+
+.contact_list{
+    margin-right: 40px;
+}
+
+.close_contact_button{
+    float: right;
+}
