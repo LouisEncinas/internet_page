@@ -14,6 +14,9 @@ def mainloop():
         print('')
         c.show()
         print('')
+        for move in c._possible_moves():
+            print(move)
+        print('')
         ipt = input('Next move : ')
         if ipt != 'STOP':
             _from,to = tuple(ipt.split(' '))
@@ -25,11 +28,11 @@ def random_game():
     c = Chess()
     lst_moves = c._possible_moves()
     while lst_moves:
-        clear()
+        # clear()
         print('')
         c.show()
         print('')
-        sleep(0.01)
+        sleep(0.5)
         lst_moves = c._possible_moves()
         move = lst_moves[random.randint(0, len(lst_moves)-1)]
         c.move(move._from, move.to)
@@ -37,7 +40,7 @@ def random_game():
 
 
 def main():
-    random_game()
+    mainloop()
 
 if __name__ == "__main__":
     main()

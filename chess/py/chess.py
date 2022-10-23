@@ -1,3 +1,4 @@
+from time import sleep
 from termcolor import colored, cprint
 
 ASCII_UPPER_START = 65
@@ -6,17 +7,21 @@ BOARD_SIZE = 8
 
 class Move:
 
-    def __init__(self, _from, to, piece, take:bool=False, upgrade:bool=False) -> None:
+    def __init__(self, _from, to, piece, take:bool=False, upgrade:bool=False, rook:bool=False) -> None:
+        self.piece = piece
+
         self._from = _from
         self.to = to
-        self.piece = piece
+
         self.take = take
         self.upgrade = upgrade
+        self.rook = rook
 
     def __str__(self) -> str:
         tk = 'x' if self.take else ''
         up = '(up)' if self.upgrade else ''
         return f'{self._from}->{tk}{self.to} {up}'
+
 
 class Piece:
 
@@ -34,9 +39,9 @@ class Piece:
     WHITE = 'w'
     BLACK = 'b'
 
-    def __init__(self, id:str, pos:str, color:str) -> None:
+    def __init__(self, id:str, color:str) -> None:
         self._id = id
-        self._pos = pos
+        self._pos = ''
         self._color = color
 
         self.not_moved = True
@@ -63,8 +68,8 @@ class Piece:
 
 class Pawn(Piece):
 
-    def __init__(self, pos: str, color: str) -> None:
-        super().__init__(Piece.PAWN, pos, color)
+    def __init__(self, color: str) -> None:
+        super().__init__(Piece.PAWN, color)
 
     def _possible_moves(self, board:list[list]) -> list[Move]:
 
@@ -95,8 +100,8 @@ class Pawn(Piece):
 
 class FiniteMovementPiece(Piece):
 
-    def __init__(self, id: str, pos: str, color: str) -> None:
-        super().__init__(id, pos, color)
+    def __init__(self, id: str, color: str) -> None:
+        super().__init__(id, color)
         self.movements:list[tuple] = []
 
     def _possible_moves(self, board: list[list]) -> list[Move]:
@@ -114,19 +119,20 @@ class FiniteMovementPiece(Piece):
 
 class Night(FiniteMovementPiece):
 
-    def __init__(self, pos:str, color:str) -> None:
-        super().__init__(Piece.NIGHT, pos, color)
+    def __init__(self, color:str) -> None:
+        super().__init__(Piece.NIGHT, color)
         self.movements = [(2,-1),(2,1),(1,2),(-1,2),(-2,1),(-2,-1),(-1,-2),(1,-2)]
 
 class King(FiniteMovementPiece):
-    def __init__(self, pos: str, color: str) -> None:
-        super().__init__(Piece.KING, pos, color)
+    
+    def __init__(self, color: str) -> None:
+        super().__init__(Piece.KING, color)
         self.movements = [(1,1),(-1,1),(-1,-1),(1,-1),(0,1),(0,-1),(1,0),(-1,0)]
 
 class InfiniteMovementPiece(Piece):
 
-    def __init__(self, id: str, pos: str, color: str) -> None:
-        super().__init__(id, pos, color)
+    def __init__(self, id: str, color: str) -> None:
+        super().__init__(id, color)
         self.directions:list[tuple] = []
 
     def _possible_moves(self, board: list[list]) -> list[Move]:
@@ -144,47 +150,57 @@ class InfiniteMovementPiece(Piece):
 
 class Bishop(InfiniteMovementPiece):
 
-    def __init__(self, pos:str, color:str) -> None:
-        super().__init__(Piece.BISHOP, pos, color)
+    def __init__(self, color:str) -> None:
+        super().__init__(Piece.BISHOP, color)
         self.directions = [(1,1),(-1,1),(-1,-1),(1,-1)]
 
 class Rook(InfiniteMovementPiece):
 
-    def __init__(self, pos: str, color: str) -> None:
-        super().__init__(Piece.ROOK, pos, color)
+    def __init__(self, color: str) -> None:
+        super().__init__(Piece.ROOK, color)
         self.directions = [(0,1),(0,-1),(1,0),(-1,0)]
 
 class Queen(InfiniteMovementPiece):
 
-    def __init__(self, pos: str, color: str) -> None:
-        super().__init__(Piece.QUEEN, pos, color)
+    def __init__(self, color: str) -> None:
+        super().__init__(Piece.QUEEN, color)
         self.directions = [(1,1),(-1,1),(-1,-1),(1,-1),(0,1),(0,-1),(1,0),(-1,0)]
 
 class Chess:
 
     _EMPTY_CASE:str = '_'
 
-    _INIT = [[Rook('a8', Piece.BLACK),Night('b8', Piece.BLACK),Bishop('c8',Piece.BLACK),Queen('d8', Piece.BLACK),King('e8', Piece.BLACK),Bishop('f8',Piece.BLACK),Night('g8', Piece.BLACK),Rook('h8', Piece.BLACK)],
-            [Pawn(f'{chr(i+ASCII_LOWER_START)}7', Piece.BLACK) for i in range(8)],
+    _INIT = [[Rook(Piece.BLACK),Night(Piece.BLACK),Bishop(Piece.BLACK),Queen(Piece.BLACK),King(Piece.BLACK),Bishop(Piece.BLACK),Night(Piece.BLACK),Rook(Piece.BLACK)],
+            [Pawn(Piece.BLACK) for _ in range(8)],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
-            [Pawn(f'{chr(i+ASCII_LOWER_START)}2', Piece.WHITE) for i in range(8)],
-            [Rook('a1', Piece.WHITE),Night('b1', Piece.WHITE),Bishop('c1',Piece.WHITE),Queen('d1', Piece.WHITE),King('e1', Piece.WHITE),Bishop('f1',Piece.WHITE),Night('g1', Piece.WHITE),Rook('h1', Piece.WHITE)]]
+            [Pawn(Piece.WHITE) for _ in range(8)],
+            [Rook(Piece.WHITE),Night(Piece.WHITE),Bishop(Piece.WHITE),Queen(Piece.WHITE),King(Piece.WHITE),Bishop(Piece.WHITE),Night(Piece.WHITE),Rook(Piece.WHITE)]]
 
     _TEST = [[_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
-            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,Pawn('d7', Piece.WHITE),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,King(color=Piece.WHITE),_EMPTY_CASE,Bishop(Piece.WHITE),_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
-            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
-            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
-            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE]]
+            [_EMPTY_CASE,_EMPTY_CASE,Queen(color=Piece.BLACK),_EMPTY_CASE,Queen(color=Piece.BLACK),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE]]
 
     def __init__(self) -> None:
-        self._board = self._INIT
+        self._board = self._TEST
+        self.initialize_pos()
         self.turn = Piece.WHITE
+
+        self.check = False
+        self.check_mate = False
+
+    def initialize_pos(self) -> None:
+        for i, row in enumerate(self._board):
+            for j, case in enumerate(row):
+                if isinstance(case, Piece):
+                    case._pos = Piece._index_to_pos((i,j))
     
     def show(self):
         print('   * * * * * * * * * *')
@@ -198,26 +214,34 @@ class Chess:
                     cprint(f'{case}', end=' ')
             print('*')
         print('   * * * * * * * * * *\n     a b c d e f g h')
+        cprint('\nTurn : ', end='')
+        col = 'red' if self.turn == Piece.WHITE else 'blue'
+        cprint(f'{self.turn}', col, end='\n')
 
     def _possible_moves(self) -> list[Move]:
-        psb_mv = []
+        psb_mv_player = []
+        psb_mv_holder = []
         for row in self._board:
             for case in row:
-                if isinstance(case, Piece) and case._color == self.turn:
-                    psb_mv += case._possible_moves(self._board)
-        return psb_mv
+                if isinstance(case, Piece): 
+                    if case._color == self.turn:
+                        psb_mv_player += case._possible_moves(self._board)
+                    else: psb_mv_holder += case._possible_moves(self._board)
 
-    def _show_possible_moves(self):
-        for row in self._board:
-            for case in row:
-                if isinstance(case, Piece) and case._possible_moves(self._board):
-                    print(f'{case._color} {case._id} in {case._pos} :')
-                    string = ''
-                    for move in case._possible_moves(self._board):
-                        string += f'{move}, '
-                    string += '\n'
-                    print(string)
-        print(f'Number of moves : {len(self._possible_moves())}')
+        rm_mv = []
+        for player_move in psb_mv_player:
+            if isinstance(player_move.piece, King): 
+                for holder_move in psb_mv_holder:
+                    if player_move.to == holder_move.to: rm_mv.append(player_move)
+                    if holder_move.to == player_move.piece._pos: self.check = True
+        rm_mv = list(set(rm_mv))
+        # Permet de supprimer les doublons, et donc de pas remove plusieurs fois la même chose par la suite et donc de pas avoir d'erreurs
+        for move in rm_mv:
+            psb_mv_player.remove(move)
+
+        
+
+        return psb_mv_player
 
     def move(self, _from:str, to:str) -> None:
         save_move = None
