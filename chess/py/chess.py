@@ -5,6 +5,15 @@ ASCII_UPPER_START = 65
 ASCII_LOWER_START = 97
 BOARD_SIZE = 8
 
+def add(*tpls):
+    res = (0,0)
+    for tpl in tpls:
+        res = (res[0] + tpl[0], res[1]+tpl[1])
+    return res
+
+def time(a, tpl):
+    return (a*tpl[0], a*tpl[1])
+
 class Move:
 
     def __init__(self, _from, to, piece, take:bool=False, upgrade:bool=False, rook:bool=False) -> None:
@@ -45,6 +54,7 @@ class Piece:
         self._color = color
 
         self.not_moved = True
+        self.defended = False
 
     def __str__(self) -> str:
         return self._id
@@ -93,8 +103,9 @@ class Pawn(Piece):
             new_index = (index[0]+em[0],index[1]+em[1])
             if -1 < new_index[0] < 8 and -1 < new_index[1] < 8:
                 arrival_case = board[new_index[0]][new_index[1]]
-                if isinstance(arrival_case, Piece) and arrival_case._color != self._color:
-                    psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos(new_index), self, upgrade=upgrade))
+                if isinstance(arrival_case, Piece):
+                    if arrival_case._color != self._color: psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos(new_index), self, upgrade=upgrade))
+                    else: arrival_case.defended = True
 
         return psb_mv
 
@@ -113,8 +124,9 @@ class FiniteMovementPiece(Piece):
                 arrival_case = board[new_index[0]][new_index[1]]
                 if arrival_case == Chess._EMPTY_CASE:
                     psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos(new_index), self))
-                elif isinstance(arrival_case, Piece) and arrival_case._color != self._color:
-                    psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos(new_index), self, take=True))
+                elif isinstance(arrival_case, Piece):
+                    if arrival_case._color != self._color: psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos(new_index), self, take=True))
+                    else: arrival_case.defended = True
         return psb_mv
 
 class Night(FiniteMovementPiece):
@@ -144,8 +156,9 @@ class InfiniteMovementPiece(Piece):
                 psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos(new_index), self))
                 new_index = (new_index[0]+tpl[0],new_index[1]+tpl[1])
             if not self._on_edge((new_index[0]-tpl[0],new_index[1]-tpl[1])):
-                if isinstance(board[new_index[0]][new_index[1]],Piece) and board[new_index[0]][new_index[1]]._color != self._color:
-                    psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos(new_index), self, take=True))
+                if isinstance(board[new_index[0]][new_index[1]],Piece):
+                    if board[new_index[0]][new_index[1]]._color != self._color: psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos(new_index), self, take=True))
+                    else: board[new_index[0]][new_index[1]].defended = True
         return psb_mv
 
 class Bishop(InfiniteMovementPiece):
@@ -179,14 +192,14 @@ class Chess:
             [Pawn(Piece.WHITE) for _ in range(8)],
             [Rook(Piece.WHITE),Night(Piece.WHITE),Bishop(Piece.WHITE),Queen(Piece.WHITE),King(Piece.WHITE),Bishop(Piece.WHITE),Night(Piece.WHITE),Rook(Piece.WHITE)]]
 
-    _TEST = [[_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+    _TEST = [[_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,King(color=Piece.WHITE),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,Rook(Piece.WHITE)],
+            [_EMPTY_CASE,Bishop(Piece.BLACK),_EMPTY_CASE,Queen(color=Piece.BLACK),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
-            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,King(color=Piece.WHITE),_EMPTY_CASE,Bishop(Piece.WHITE),_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
-            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
-            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
-            [_EMPTY_CASE,_EMPTY_CASE,Queen(color=Piece.BLACK),_EMPTY_CASE,Queen(color=Piece.BLACK),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE]]
+            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,Bishop(Piece.WHITE)],
+            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE]]
 
     def __init__(self) -> None:
         self._board = self._TEST
@@ -195,6 +208,10 @@ class Chess:
 
         self.check = False
         self.check_mate = False
+
+    def board(self, case:str):
+        index = Piece._pos_to_index(case)
+        return self._board[index[0]][index[1]]
 
     def initialize_pos(self) -> None:
         for i, row in enumerate(self._board):
@@ -215,10 +232,15 @@ class Chess:
             print('*')
         print('   * * * * * * * * * *\n     a b c d e f g h')
         cprint('\nTurn : ', end='')
+
         col = 'red' if self.turn == Piece.WHITE else 'blue'
         cprint(f'{self.turn}', col, end='\n')
 
     def _possible_moves(self) -> list[Move]:
+        self.check = False
+        check_pieces = []
+        check_king = None
+
         psb_mv_player = []
         psb_mv_holder = []
         for row in self._board:
@@ -231,16 +253,47 @@ class Chess:
         rm_mv = []
         for player_move in psb_mv_player:
             if isinstance(player_move.piece, King): 
+                arrival_case = self.board(player_move.to)
+                if isinstance(arrival_case, Piece) and arrival_case.defended: rm_mv.append(player_move)
                 for holder_move in psb_mv_holder:
-                    if player_move.to == holder_move.to: rm_mv.append(player_move)
-                    if holder_move.to == player_move.piece._pos: self.check = True
-        rm_mv = list(set(rm_mv))
+                    if player_move.to == holder_move.to and player_move not in rm_mv: rm_mv.append(player_move)
+                    if holder_move.to == player_move.piece._pos and holder_move.piece not in check_pieces: 
+                        self.check = True
+                        check_pieces.append(holder_move.piece)
+                if self.check: 
+                    check_king = player_move.piece
+
+        if self.check:
+            defend_case:list[str] = []
+            if len(check_pieces) == 1:
+                threatening_piece = check_pieces[0]
+                king_index = Piece._pos_to_index(check_king._pos)
+                threat_index = Piece._pos_to_index(threatening_piece._pos)
+
+                diff_tpl = (king_index[0]-threat_index[0],king_index[1]-threat_index[1])
+                diff = abs(diff_tpl[0]) if not diff_tpl[1] else abs(diff_tpl[1])
+                diff_tpl = (diff_tpl[0]//diff,diff_tpl[1]//diff)
+                for i in range(diff):
+                    defend_case.append(Piece._index_to_pos(add(threat_index, time(i,diff_tpl))))
+                for move in psb_mv_player:
+                    if not isinstance(move.piece,King) and move.to not in defend_case and move not in rm_mv:
+                        rm_mv.append(move)
+            else:
+                for move in psb_mv_player:
+                    if not isinstance(move.piece, King):
+                        rm_mv.append(move)
+        
+        # rm_mv = list(set(rm_mv))
         # Permet de supprimer les doublons, et donc de pas remove plusieurs fois la même chose par la suite et donc de pas avoir d'erreurs
+
         for move in rm_mv:
             psb_mv_player.remove(move)
 
-        
+        if not psb_mv_player: self.check_mate = True
 
+        print(self.check, self.check_mate)
+        print('')
+                        
         return psb_mv_player
 
     def move(self, _from:str, to:str) -> None:
@@ -249,6 +302,9 @@ class Chess:
             if move._from == _from and move.to == to:
                 save_move = move
         if save_move is not None:
+            for row in self._board:
+                for case in row:
+                    if isinstance(case, Piece): case.defended = False
             findex = Piece._pos_to_index(save_move._from)
             fto = Piece._pos_to_index(save_move.to)
             save_move.piece._pos = save_move.to

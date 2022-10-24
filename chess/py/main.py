@@ -28,7 +28,7 @@ def random_game():
     c = Chess()
     lst_moves = c._possible_moves()
     while lst_moves:
-        # clear()
+        clear()
         print('')
         c.show()
         print('')
