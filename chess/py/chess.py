@@ -109,7 +109,7 @@ class Pawn(Piece):
             if -1 < new_index[0] < 8 and -1 < new_index[1] < 8:
                 arrival_case = board[new_index[0]][new_index[1]]
                 if isinstance(arrival_case, Piece):
-                    if arrival_case._color != self._color: psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos(new_index), self, upgrade=upgrade))
+                    if arrival_case._color != self._color: psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos(new_index), self, take=True, upgrade=upgrade))
                     else: arrival_case.defended = True
 
         for epm in ep_movements:
@@ -155,6 +155,12 @@ class King(FiniteMovementPiece):
         super().__init__(Piece.KING, color)
         self.movements = [(1,1),(-1,1),(-1,-1),(1,-1),(0,1),(0,-1),(1,0),(-1,0)]
 
+    def _possible_moves(self, board: list[list]) -> list[Move]:
+        psb_mv = super()._possible_moves(board)
+        if not self.not_moved:
+            pass
+        return psb_mv
+
 class InfiniteMovementPiece(Piece):
 
     def __init__(self, id: str, color: str) -> None:
@@ -193,6 +199,24 @@ class Queen(InfiniteMovementPiece):
         super().__init__(Piece.QUEEN, color)
         self.directions = [(1,1),(-1,1),(-1,-1),(1,-1),(0,1),(0,-1),(1,0),(-1,0)]
 
+def convertir(piece:Piece, new_type_piece:str) -> Piece:
+
+    dic_pieces = {
+        Piece.NIGHT: Night,
+        Piece.BISHOP: Bishop,
+        Piece.ROOK: Rook,
+        Piece.QUEEN: Queen
+    }
+
+    new_piece:Piece = dic_pieces[new_type_piece](piece._color)
+    new_piece._pos = piece._pos
+    new_piece._color = piece._color
+    new_piece.not_moved = piece.not_moved
+    new_piece.defended = piece.defended
+    new_piece.moves = piece.moves
+
+    return new_piece
+
 class Chess:
 
     _EMPTY_CASE:str = '_'
@@ -206,12 +230,12 @@ class Chess:
             [Pawn(Piece.WHITE) for _ in range(8)],
             [Rook(Piece.WHITE),Night(Piece.WHITE),Bishop(Piece.WHITE),Queen(Piece.WHITE),King(Piece.WHITE),Bishop(Piece.WHITE),Night(Piece.WHITE),Rook(Piece.WHITE)]]
 
-    _TEST = [[_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
-            [_EMPTY_CASE,Pawn(Piece.BLACK),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
-            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
-            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+    _TEST = [[_EMPTY_CASE,Pawn(Piece.BLACK),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,Pawn(Piece.WHITE),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,Night(Piece.BLACK),_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE]]
 
@@ -306,9 +330,6 @@ class Chess:
             psb_mv_player.remove(move)
 
         if not psb_mv_player: self.check_mate = True
-
-        print(self.check, self.check_mate)
-        print('')
                         
         return psb_mv_player
 
@@ -327,7 +348,13 @@ class Chess:
             fto = Piece._pos_to_index(save_move.to)
             save_move.piece._pos = save_move.to
             if save_move.piece.not_moved: save_move.piece.not_moved = False
-            self._board[fto[0]][fto[1]] = save_move.piece
+            if not save_move.upgrade:
+                self._board[fto[0]][fto[1]] = save_move.piece
+            else:
+                print('')
+                print('New type of piece : (n, b, r, q)')
+                ask_new = input()
+                self._board[fto[0]][fto[1]] = convertir(save_move.piece, ask_new)
             self._board[findex[0]][findex[1]] = self._EMPTY_CASE
             if save_move.en_passant:
                 self._board[fto[0]-save_move.piece.dir][fto[1]] = self._EMPTY_CASE

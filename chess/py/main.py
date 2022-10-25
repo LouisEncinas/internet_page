@@ -14,6 +14,10 @@ def mainloop():
         print('')
         c.show()
         print('')
+        print(c.check, c.check_mate)
+        print('')
+        print(c.moves)
+        print('')
         for move in c._possible_moves():
             print(move)
         print('')
