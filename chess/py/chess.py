@@ -16,15 +16,17 @@ def time(a, tpl):
 
 class Move:
 
-    def __init__(self, _from, to, piece, take:bool=False, upgrade:bool=False, rook:bool=False) -> None:
+    def __init__(self, _from, to, piece, take:bool=False, upgrade:bool=False, rook:bool=False, en_passant:bool=False) -> None:
         self.piece = piece
 
         self._from = _from
         self.to = to
 
         self.take = take
+
         self.upgrade = upgrade
         self.rook = rook
+        self.en_passant = en_passant
 
     def __str__(self) -> str:
         tk = 'x' if self.take else ''
@@ -56,6 +58,8 @@ class Piece:
         self.not_moved = True
         self.defended = False
 
+        self.moves:list[Move] = []
+
     def __str__(self) -> str:
         return self._id
 
@@ -85,12 +89,13 @@ class Pawn(Piece):
 
         psb_mv = []
         index = Piece._pos_to_index(self._pos)
-        dir = -1 if self._color == Piece.WHITE else 1
+        self.dir = -1 if self._color == Piece.WHITE else 1
         upgrade = True if ((self._color == Piece.WHITE and index[0] == 1) or (self._color == Piece.BLACK and index[0] == 6)) else False
 
-        straight_movements = [(dir,0)]
-        if self.not_moved: straight_movements.append((2*dir,0))
-        eating_movements = [(dir,-1),(dir,1)]
+        straight_movements = [(self.dir,0)]
+        if self.not_moved: straight_movements.append((2*self.dir,0))
+        eating_movements = [(self.dir,-1),(self.dir,1)]
+        ep_movements = [(0,-1),(0,1)]
 
         for sm in straight_movements:
             new_index = (index[0]+sm[0],index[1]+sm[1])
@@ -106,6 +111,15 @@ class Pawn(Piece):
                 if isinstance(arrival_case, Piece):
                     if arrival_case._color != self._color: psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos(new_index), self, upgrade=upgrade))
                     else: arrival_case.defended = True
+
+        for epm in ep_movements:
+            look_index = (index[0]+epm[0],index[1]+epm[1])
+            arrival_index = (index[0]+epm[0]+self.dir,index[1]+epm[1])
+            if (-1 < arrival_index[0] < 8 and -1 < arrival_index[1] < 8):
+                look_case = board[look_index[0]][look_index[1]]
+                arrival_case = board[arrival_index[0]][arrival_index[1]]
+                if self._pos[1] == '5' and isinstance(look_case, Piece) and look_case._color != self._color and len(look_case.moves) == 1:
+                    psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos(arrival_index), self, upgrade=upgrade, take=True, en_passant=True))
 
         return psb_mv
 
@@ -192,19 +206,21 @@ class Chess:
             [Pawn(Piece.WHITE) for _ in range(8)],
             [Rook(Piece.WHITE),Night(Piece.WHITE),Bishop(Piece.WHITE),Queen(Piece.WHITE),King(Piece.WHITE),Bishop(Piece.WHITE),Night(Piece.WHITE),Rook(Piece.WHITE)]]
 
-    _TEST = [[_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,King(color=Piece.WHITE),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
-            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,Rook(Piece.WHITE)],
-            [_EMPTY_CASE,Bishop(Piece.BLACK),_EMPTY_CASE,Queen(color=Piece.BLACK),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+    _TEST = [[_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+            [_EMPTY_CASE,Pawn(Piece.BLACK),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+            [_EMPTY_CASE,_EMPTY_CASE,Pawn(Piece.WHITE),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
-            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,Bishop(Piece.WHITE)],
+            [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE]]
 
     def __init__(self) -> None:
         self._board = self._TEST
         self.initialize_pos()
         self.turn = Piece.WHITE
+
+        self.moves:list[Move] = []
 
         self.check = False
         self.check_mate = False
@@ -302,6 +318,8 @@ class Chess:
             if move._from == _from and move.to == to:
                 save_move = move
         if save_move is not None:
+            save_move.piece.moves.append(save_move)
+            self.moves.append(save_move)
             for row in self._board:
                 for case in row:
                     if isinstance(case, Piece): case.defended = False
@@ -311,4 +329,6 @@ class Chess:
             if save_move.piece.not_moved: save_move.piece.not_moved = False
             self._board[fto[0]][fto[1]] = save_move.piece
             self._board[findex[0]][findex[1]] = self._EMPTY_CASE
+            if save_move.en_passant:
+                self._board[fto[0]-save_move.piece.dir][fto[1]] = self._EMPTY_CASE
             self.turn = Piece.BLACK if save_move.piece._color == Piece.WHITE else Piece.WHITE
