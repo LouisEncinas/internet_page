@@ -9,42 +9,44 @@ def clear():
 def mainloop():
     c = Chess()
     ipt = ''
-    while ipt != 'STOP':
+    while ipt != 'STOP' and not c.check_mate:
         clear()
         print('')
         c.show()
         print('')
-        print(c.check, c.check_mate)
-        print('')
-        print(c.moves)
-        print('')
-        for move in c._possible_moves():
-            print(move)
-        print('')
+        # print(c.check, c.check_mate)
+        # print('')
+        # print(c.moves)
+        # print('')
+        # for move in c.psb_mv:
+        #     print(move)
+        # print('')
         ipt = input('Next move : ')
         if ipt != 'STOP':
             _from,to = tuple(ipt.split(' '))
             c.move(_from, to)
+    if c.check_mate:
+        clear()
+        c.show()
 
 def random_game():
     random.seed()
 
     c = Chess()
     lst_moves = c._possible_moves()
+    move = None
     while lst_moves:
         clear()
         print('')
         c.show()
         print('')
-        sleep(0.5)
-        lst_moves = c._possible_moves()
-        move = lst_moves[random.randint(0, len(lst_moves)-1)]
+        if move is not None: print(move)
+        input()
+        move = c.psb_mv[random.randint(0, len(c.psb_mv)-1)]
         c.move(move._from, move.to)
-        lst_moves = c._possible_moves()
-
 
 def main():
-    mainloop()
+    random_game()
 
 if __name__ == "__main__":
     main()
