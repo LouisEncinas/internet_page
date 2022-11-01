@@ -167,40 +167,17 @@ class King(FiniteMovementPiece):
 
     def _possible_moves(self, board: list[list]) -> list[Move]:
         psb_mv = super()._possible_moves(board)
-        self.pinned_pieces = []
-        self.pos_move_to = []
         # Check for rook possibilities
         dirs = [(0,1),(0,-1)]
         index = Piece._pos_to_index(self._pos)
         if self.not_moved:
             for dir in dirs:
                 new_index = add(index,dir)
-                while (0 < new_index[0] < 7 and 0 < new_index[1] < 7) and board[new_index[0]][new_index[1]] == Chess._EMPTY_CASE:
+                while -1 < new_index[1] < 8 and board[new_index[0]][new_index[1]] == Chess._EMPTY_CASE:
                     new_index = add(new_index,dir)
                 look_case = board[new_index[0]][new_index[1]]
                 if isinstance(look_case, Rook) and look_case.not_moved:
                     psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos((index[0]+2*dir[0],index[1]+2*dir[1])), self, rook=True, dir_rook=dir, piece_rook=look_case))
-
-        for dir in self.movements:
-            pinned_piece = None
-            pos_move_to = []
-            new_index = (index[0]+dir[0],index[1]+dir[1])
-            brk = True
-            while (-1 < new_index[0] < 8 and -1 < new_index[1] < 8) and brk:
-                new_case = board[new_index[0]][new_index[1]]
-                pos_move_to.append(Piece._index_to_pos(new_index))
-                if isinstance(new_case, Piece):
-                    if new_case._color != self._color:
-                        brk = False
-                        if not isinstance(new_case,(Rook, Bishop, Queen)): pinned_piece = None
-                    else: pinned_piece = new_case
-
-                new_index = (new_index[0]+dir[0],new_index[1]+dir[1])
-
-            # If any pinned piece is found, we keep the piece and all the case (to) where it can go
-            if pinned_piece is not None and not brk: 
-                self.pinned_pieces.append(pinned_piece)
-                self.pos_move_to.append(pos_move_to)
         
         return psb_mv
 
@@ -283,7 +260,7 @@ class Chess:
             [Rook(Piece.WHITE),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,King(Piece.WHITE),_EMPTY_CASE,_EMPTY_CASE,Rook(Piece.WHITE)]]
 
     def __init__(self) -> None:
-        self._board = self._INIT
+        self._board = self._TEST
         self.initialize_pos()
         self.turn = Piece.WHITE
 
@@ -336,8 +313,6 @@ class Chess:
 
     def _possible_moves(self) -> list[Move]:
         self.check = False
-        check_pieces = []
-        check_king = None
         # Create two lists, one containing the player moves and another containing the ennemy moves
         psb_mv_player = []
         psb_mv_holder = []
@@ -353,67 +328,33 @@ class Chess:
         for player_move in psb_mv_player:
             # Particular case for the king
             if isinstance(player_move.piece, King):
-                # Check if the piece is defended, in which case the king can not eat the piece.
-                arrival_case = self.board(player_move.to)
-                if isinstance(arrival_case, Piece) and arrival_case.defended: rm_mv.append(player_move)
-
                 for holder_move in psb_mv_holder:
-                    # Check the case that are controlled by ennemy pieces
-                    if player_move.to == holder_move.to and holder_move.pot_threat and player_move not in rm_mv: rm_mv.append(player_move)
-                    # Check if the king is in Check and keep the pieces
-                    if holder_move.to == player_move.piece._pos and holder_move.pot_threat and holder_move.piece not in check_pieces: 
-                        self.check = True
-                        check_pieces.append(holder_move.piece)
                     # Check for rook
-                    if player_move.rook and Piece._index_to_pos((Piece._pos_to_index(player_move.to)[0]-player_move.dir_rook[0],Piece._pos_to_index(player_move.to)[1]-player_move.dir_rook[1])) == holder_move.to and holder_move.pot_threat and player_move not in rm_mv: rm_mv.append(player_move)
-                # Keep the king if it is checked
-                if self.check: 
-                    check_king = player_move.piece
+                    if (player_move.rook and
+                    Piece._index_to_pos((Piece._pos_to_index(player_move.to)[0]-player_move.dir_rook[0],Piece._pos_to_index(player_move.to)[1]-player_move.dir_rook[1])) == holder_move.to and
+                    holder_move.pot_threat and
+                    player_move not in rm_mv): 
+                        rm_mv.append(player_move)
+                    if holder_move.to == player_move.piece._pos and holder_move.pot_threat:
+                        self.check = True
 
-                # Pinned pieces
-                for ind, pp in enumerate(player_move.piece.pinned_pieces):
-                    for pm in psb_mv_player:
-                        if pp == pm.piece and pm.to not in player_move.piece.pos_move_to[ind] and pm not in rm_mv:
-                            rm_mv.append(pm)
+        for holder_move in psb_mv_holder:
+            if isinstance(holder_move.piece, King):
+                for player_move in psb_mv_player:
+                    if player_move.to == holder_move.piece._pos and player_move.pot_threat:
+                        self.check_mate = True
 
-        # Actions when a king is checked
-        if self.check:
-            defend_case:list[str] = []
-            if len(check_pieces) == 1:
-                # If only 1 piece is threatening the king, keep the cases where the threatening piece is and between the piece
-                # and the king, and check if any ohter piece the same color as the king can defend it.
-                threatening_piece = check_pieces[0]
-                king_index = Piece._pos_to_index(check_king._pos)
-                threat_index = Piece._pos_to_index(threatening_piece._pos)
-                diff_tpl = (king_index[0]-threat_index[0],king_index[1]-threat_index[1])
-                diff = abs(diff_tpl[0]) if not diff_tpl[1] else abs(diff_tpl[1])
-                diff_tpl = (diff_tpl[0]//diff,diff_tpl[1]//diff)
-                for i in range(diff):
-                    defend_case.append(Piece._index_to_pos(add(threat_index, time(i,diff_tpl))))
-                # Only keep the moves of other pieces than can defend the king
-                for move in psb_mv_player:
-                    if not isinstance(move.piece,King) and move.to not in defend_case and move not in rm_mv:
-                        rm_mv.append(move)
-            else:
-                # If 2 pieces are threatening the king, the only possible action is to move this king
-                for move in psb_mv_player:
-                    if not isinstance(move.piece, King):
-                        rm_mv.append(move)
-        
-        # rm_mv = list(set(rm_mv))
-        # It is important that rm_mv does not contain any moves multiple time, list(set(.)) is a way to erase all the double moves
-        # however, it is not used here because it is checked in the conditions before adding a move to rm_mv that rm_mv does not already
-        # contain the move
-
+        test_board = self._board
+        for player_move in psb_mv_player:
+            pass
+            
         # Erase all moves that are not legal
         for move in rm_mv:
             psb_mv_player.remove(move)
-
-        if not psb_mv_player: self.check_mate = True
                         
         return psb_mv_player
 
-    def move(self, _from:str, to:str) -> None:
+    def _move(self, _from:str, to:str, board) -> None:
         save_move = None
         for move in self.psb_mv:
             if move._from == _from and move.to == to:
@@ -421,11 +362,13 @@ class Chess:
         if save_move is not None:
             save_move.piece.moves.append(save_move)
             self.moves.append(save_move)
-            for row in self._board:
+            for row in board:
                 for case in row:
                     if isinstance(case, Piece): case.defended = False
+
             findex = Piece._pos_to_index(save_move._from)
             fto = Piece._pos_to_index(save_move.to)
+
             save_move.piece._pos = save_move.to
             if save_move.piece.not_moved: save_move.piece.not_moved = False
 
@@ -433,21 +376,24 @@ class Chess:
                 print('')
                 print('New type of piece : (n, b, r, q)')
                 ask_new = input()
-                self._board[fto[0]][fto[1]] = convertir(save_move.piece, ask_new)
+                board[fto[0]][fto[1]] = convertir(save_move.piece, ask_new)
             else:
-                self._board[fto[0]][fto[1]] = save_move.piece
+                board[fto[0]][fto[1]] = save_move.piece
 
             if save_move.rook:
                 rook_index = Piece._pos_to_index(save_move.piece_rook._pos)
                 new_rook_index = (fto[0]-save_move.dir_rook[0],fto[1]-save_move.dir_rook[1])
-                self._board[rook_index[0]][rook_index[1]] = self._EMPTY_CASE
-                self._board[new_rook_index[0]][new_rook_index[1]] = save_move.piece_rook
+                board[rook_index[0]][rook_index[1]] = self._EMPTY_CASE
+                board[new_rook_index[0]][new_rook_index[1]] = save_move.piece_rook
                 save_move.piece_rook._pos = Piece._index_to_pos(new_rook_index)
                 save_move.piece_rook.not_moved = False # If the rook has already moved, not rook is possible
             
-            self._board[findex[0]][findex[1]] = self._EMPTY_CASE
+            board[findex[0]][findex[1]] = self._EMPTY_CASE
             if save_move.en_passant:
-                self._board[fto[0]-save_move.piece.dir][fto[1]] = self._EMPTY_CASE
+                board[fto[0]-save_move.piece.dir][fto[1]] = self._EMPTY_CASE
 
             self.turn = Piece.BLACK if save_move.piece._color == Piece.WHITE else Piece.WHITE
             self.psb_mv = self._possible_moves()
+
+    def move(self, _from, to):
+        self._move(_from, to, self._board)

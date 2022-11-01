@@ -46,7 +46,7 @@ def random_game():
         c.move(move._from, move.to)
 
 def main():
-    random_game()
+    mainloop()
 
 if __name__ == "__main__":
     main()
