@@ -237,6 +237,8 @@ def convertir(piece:Piece, new_type_piece:str) -> Piece:
 
     return new_piece
 
+# Au lieu de faire une classe chess, il sera plus facile de gérer ça avec des fonctions.
+
 class Chess:
 
     _EMPTY_CASE:str = '_'
