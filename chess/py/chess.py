@@ -1,47 +1,27 @@
 import os
 from termcolor import cprint
+from time import sleep
 
 """
-Code all moves of pieces that do not need to know other pieces moves in the pieces class
+All moves that do not need to know other pieces moves in the pieces class
 """
 
-ASCII_UPPER_START = 65
-ASCII_LOWER_START = 97
-BOARD_SIZE = 8
-
-### Other functions ###
-
-def clear():
-    os.system('cls' if os.name == 'nt' else 'clear')
-
-def add(*tpls) -> tuple:
-    res = (0,0)
-    for tpl in tpls:
-        res = (res[0] + tpl[0], res[1] + tpl[1])
-    return res
-
-def time(a, tpl):
-    return (a*tpl[0], a*tpl[1])
-
+###############
 ### Classes ###
+###############
 
 class Move:
 
-    def __init__(self, _from, to, piece, take:bool=False, upgrade:bool=False, rook:bool=False, en_passant:bool=False, dir_rook:tuple=None, piece_rook=None, pot_threat:bool=True) -> None:
-        self.piece = piece
-
+    def __init__(self, _from:str, to:str, piece, take:bool=False, upgrade:bool=False, rook:bool=False, en_passant:bool=False, dir_rook:tuple=None, piece_rook=None, pot_threat:bool=True) -> None:
+        self.piece:Piece = piece
         self._from = _from
         self.to = to
-
         self.take = take
-
         self.upgrade = upgrade
         self.en_passant = en_passant
-
         self.rook = rook
         self.dir_rook = dir_rook
-        self.piece_rook = piece_rook
-
+        self.piece_rook:Rook = piece_rook
         self.pot_threat = pot_threat
 
     def __str__(self) -> str:
@@ -68,13 +48,11 @@ class Piece:
     BLACK = 'b'
 
     def __init__(self, id:str, color:str) -> None:
+
         self._id = id
         self._pos = ''
         self._color = color
-
         self.not_moved = True
-        self.defended = False
-
         self.moves:list[Move] = []
 
     def __str__(self) -> str:
@@ -125,7 +103,6 @@ class Pawn(Piece):
                 arrival_case = board[new_index[0]][new_index[1]]
                 if isinstance(arrival_case, Piece):
                     if arrival_case._color != self._color: psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos(new_index), self, take=True, upgrade=upgrade))
-                    else: arrival_case.defended = True
 
         for epm in ep_movements:
             look_index = (index[0]+epm[0],index[1]+epm[1])
@@ -155,7 +132,6 @@ class FiniteMovementPiece(Piece):
                     psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos(new_index), self))
                 elif isinstance(arrival_case, Piece):
                     if arrival_case._color != self._color: psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos(new_index), self, take=True))
-                    else: arrival_case.defended = True
         return psb_mv
 
 class Night(FiniteMovementPiece):
@@ -169,8 +145,6 @@ class King(FiniteMovementPiece):
     def __init__(self, color: str) -> None:
         super().__init__(Piece.KING, color)
         self.movements = [(1,1),(-1,1),(-1,-1),(1,-1),(0,1),(0,-1),(1,0),(-1,0)]
-        self.pinned_pieces = []
-        self.pos_move_to = []
 
     def _possible_moves(self, board: list[list]) -> list[Move]:
         psb_mv = super()._possible_moves(board)
@@ -205,7 +179,6 @@ class InfiniteMovementPiece(Piece):
             if not self._on_edge((new_index[0]-tpl[0],new_index[1]-tpl[1])):
                 if isinstance(board[new_index[0]][new_index[1]],Piece):
                     if board[new_index[0]][new_index[1]]._color != self._color: psb_mv.append(Move(Piece._index_to_pos(index), Piece._index_to_pos(new_index), self, take=True))
-                    else: board[new_index[0]][new_index[1]].defended = True
         return psb_mv
 
 class Bishop(InfiniteMovementPiece):
@@ -226,7 +199,9 @@ class Queen(InfiniteMovementPiece):
         super().__init__(Piece.QUEEN, color)
         self.directions = [(1,1),(-1,1),(-1,-1),(1,-1),(0,1),(0,-1),(1,0),(-1,0)]
 
-### Function ###
+#################
+### Functions ###
+#################
 
 def convertir(piece:Piece, new_type_piece:str) -> Piece:
 
@@ -241,7 +216,6 @@ def convertir(piece:Piece, new_type_piece:str) -> Piece:
     new_piece._pos = piece._pos
     new_piece._color = piece._color
     new_piece.not_moved = piece.not_moved
-    new_piece.defended = piece.defended
     new_piece.moves = piece.moves
 
     return new_piece
@@ -252,60 +226,83 @@ def initialize_pos(board:list[list]) -> None:
                 if isinstance(case, Piece):
                     case._pos = Piece._index_to_pos((i,j))
 
-def possible_moves(board:list[list], game_info:dict) -> list[Move]:
-
-        game_info['check'] = False
+def possible_moves(board:list[list], turn:str) -> list[Move]:
 
         # Create two lists, one containing the player moves and another containing the ennemy moves
-        psb_mv_player = []
-        psb_mv_holder = []
+        psb_mv_player:list[Move] = []
+        psb_mv_holder:list[Move] = []
         for row in board:
             for case in row:
                 if isinstance(case, Piece): 
-                    if case._color == game_info['turn']: psb_mv_player += case._possible_moves(board)
+                    if case._color == turn: psb_mv_player += case._possible_moves(board)
                     else: psb_mv_holder += case._possible_moves(board)
 
-        # rm_mv is the list that will contain all moves that are illegal
-        rm_mv = []
-        for player_move in psb_mv_player:
-            # Particular case for the king
-            if isinstance(player_move.piece, King):
-                for holder_move in psb_mv_holder:
-                    # Check for rook
-                    if (player_move.rook and
-                    Piece._index_to_pos((Piece._pos_to_index(player_move.to)[0]-player_move.dir_rook[0],Piece._pos_to_index(player_move.to)[1]-player_move.dir_rook[1])) == holder_move.to and
-                    holder_move.pot_threat and
-                    player_move not in rm_mv): 
-                        rm_mv.append(player_move)
-                    if holder_move.to == player_move.piece._pos and holder_move.pot_threat:
-                        game_info['check'] = True
-
-        for holder_move in psb_mv_holder:
-            if isinstance(holder_move.piece, King):
-                for player_move in psb_mv_player:
-                    if player_move.to == holder_move.piece._pos and player_move.pot_threat:
-                        game_info['check_mate'] = True
+        rm_mv:list[Move] = []
+        for mv in psb_mv_player + psb_mv_holder:
+            if isinstance(mv.piece, King) and mv.rook:
+                loop_lst = psb_mv_holder if mv.piece._color == turn else psb_mv_player
+                for oth_mv in loop_lst:
+                    if ((Piece._index_to_pos((Piece._pos_to_index(mv.to)[0]-mv.dir_rook[0],Piece._pos_to_index(mv.to)[1]-mv.dir_rook[1])) == oth_mv.to or
+                    Piece._index_to_pos((Piece._pos_to_index(mv.to)[0],Piece._pos_to_index(mv.to)[1])) == oth_mv.to) and
+                    oth_mv.pot_threat and
+                    mv not in rm_mv): 
+                        rm_mv.append(mv)
             
-        # Erase all moves that are not legal
-        for move in rm_mv:
-            psb_mv_player.remove(move)
-                        
-        return psb_mv_player
+        for mv in rm_mv:
+            if mv.piece._color == turn: psb_mv_player.remove(mv)
+            else: psb_mv_holder.remove(mv)
 
-def show(board:list[list], game_info:dict):
+        is_check_mate(board, psb_mv_player, psb_mv_holder)
+                        
+        return psb_mv_player, psb_mv_holder
+
+def is_check(player_moves:list[Move], holder_moves:list[Move]) -> bool:
+
+    # Return if the current player is in check state
+
+    check = False
+    for pl_mv in player_moves:
+        if isinstance(pl_mv.piece, King):
+            for hd_mv in holder_moves:
+                if hd_mv.to == pl_mv.piece._pos and hd_mv.pot_threat:
+                    check = True
+    return check
+
+
+def is_check_mate(board:list[list[str|Piece]], player_moves:list[Move], holder_moves:list[Move]) -> bool:
+    
+    # Return if the current player is in check_state
+
+    check_mate = False
+    next_move_board = board.copy() 
+
+    for pl_mv in player_moves:
+        if isinstance(pl_mv.piece, King):
+            next_move_board = board.copy()
+            move(pl_mv._from, pl_mv.to, next_move_board, player_moves, {'turn':pl_mv.piece._color})
+            clear()
+            show_board(next_move_board)
+            sleep(3)
+
+
+def show_board(board:list[list[str|Piece]]):
+
+    print('   * * * * * * * * * *')
+    for index_lst, lst in enumerate(board):
+        cprint(f' {BOARD_SIZE-index_lst} *', end=' ')
+        for case in lst:
+            if isinstance(case, Piece): 
+                col = 'red' if case._color == Piece.WHITE else 'blue'
+                cprint(case._id, col, end=' ')
+            else:
+                cprint(f'{case}', end=' ')
+        print('*')
+    print('   * * * * * * * * * *\n     a b c d e f g h')
+
+def show(board:list[list[str|Piece]], game_info:dict) -> None:
 
         clear()
-        print('   * * * * * * * * * *')
-        for index_lst, lst in enumerate(board):
-            cprint(f' {BOARD_SIZE-index_lst} *', end=' ')
-            for case in lst:
-                if isinstance(case, Piece): 
-                    col = 'red' if case._color == Piece.WHITE else 'blue'
-                    cprint(case._id, col, end=' ')
-                else:
-                    cprint(f'{case}', end=' ')
-            print('*')
-        print('   * * * * * * * * * *\n     a b c d e f g h')
+        show_board(board)
 
         cprint('\nTurn : ', end='')
         col = 'red' if game_info['turn'] == Piece.WHITE else 'blue'
@@ -319,18 +316,18 @@ def show(board:list[list], game_info:dict):
             cprint(f"\nVictory for {game_info['turn']}", opp_col, end='\n')
 
 def ask_move() -> tuple[str, str]:
-    pass
+    ipt = input('\nNext move ("form to" format) : ')
+    if ipt:
+        _from, to = tuple(ipt.split(' '))
+    return _from, to
 
-def move(_from:str, to:str, board:list[list], psb_mv:list[Move]) -> None:
-        save_move = None
+def move(_from:str, to:str, board:list[list[str|Piece]], psb_mv:list[Move], game_info:dict) -> None:
+        save_move:Move = None
         for move in psb_mv:
             if move._from == _from and move.to == to:
                 save_move = move
         if save_move is not None:
             save_move.piece.moves.append(save_move)
-            for row in board:
-                for case in row:
-                    if isinstance(case, Piece): case.defended = False
 
             findex = Piece._pos_to_index(save_move._from)
             fto = Piece._pos_to_index(save_move.to)
@@ -358,10 +355,31 @@ def move(_from:str, to:str, board:list[list], psb_mv:list[Move]) -> None:
             if save_move.en_passant:
                 board[fto[0]-save_move.piece.dir][fto[1]] = _EMPTY_CASE
 
-            turn = Piece.BLACK if save_move.piece._color == Piece.WHITE else Piece.WHITE
+            game_info['turn'] = Piece.BLACK if save_move.piece._color == Piece.WHITE else Piece.WHITE
 
-# Au lieu de faire une classe chess, il sera plus facile de gérer ça avec des fonctions.
+#######################
+### Other functions ###
+#######################
 
+def clear():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+def add(*tpls) -> tuple:
+    res = (0,0)
+    for tpl in tpls:
+        res = (res[0] + tpl[0], res[1] + tpl[1])
+    return res
+
+def time(a, tpl):
+    return (a*tpl[0], a*tpl[1])
+
+#######################
+### CONST variables ###
+#######################
+
+ASCII_UPPER_START = 65
+ASCII_LOWER_START = 97
+BOARD_SIZE = 8
 _EMPTY_CASE = '_'
 
 _INIT_BOARD = [[Rook(Piece.BLACK),Night(Piece.BLACK),Bishop(Piece.BLACK),Queen(Piece.BLACK),King(Piece.BLACK),Bishop(Piece.BLACK),Night(Piece.BLACK),Rook(Piece.BLACK)],
@@ -382,10 +400,23 @@ _TEST = [[_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CAS
             [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,Queen(Piece.WHITE),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
             [Rook(Piece.WHITE),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,King(Piece.WHITE),_EMPTY_CASE,_EMPTY_CASE,Rook(Piece.WHITE)]]
 
+_TEST_A = [[Rook(Piece.BLACK),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,King(Piece.BLACK),_EMPTY_CASE,_EMPTY_CASE,Rook(Piece.BLACK)],
+        [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+        [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,Rook(Piece.WHITE),_EMPTY_CASE],
+        [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+        [_EMPTY_CASE,_EMPTY_CASE,Rook(Piece.BLACK),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+        [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+        [_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE],
+        [Rook(Piece.WHITE),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,King(Piece.WHITE),_EMPTY_CASE,_EMPTY_CASE,Rook(Piece.WHITE)]]
+
+############
+### main ###
+############
+
 def main():
 
     ### Initialize board ###
-    game_board = _INIT_BOARD
+    game_board = _TEST_A
     initialize_pos(game_board)
     game_info = {
         'turn' : Piece.WHITE,
@@ -393,11 +424,38 @@ def main():
         'check_mate' : False
     }
 
+    ### Possible moves ###
+    psb_mv, hd_mv = possible_moves(game_board, game_info['turn'])
+
     ### Mainloop ###
     while not game_info['check_mate']:
-        psb_mv = possible_moves(game_board, game_info)
         show(game_board, game_info)
 
+        print('\nplayer move :')
+        for mv in psb_mv: print(mv)
+
+        print('\nhd move :')
+        for mv in hd_mv: print(mv)
+
+        _from, to = ask_move()
+        move(_from, to, game_board, psb_mv, game_info)
+        psb_mv, hd_mv = possible_moves(game_board, game_info['turn'])
+
+    ### Show final position and winner ###
+    show(game_board, game_info)
+
+#################
+### Unit test ###
+#################
+
+import unittest as ut
+
+class ChessTestCase(ut.TestCase):
+
+    def test_rook(self):
+        res = 'rook'
+        self.assertEqual('rook',res)
 
 if __name__ == '__main__':
     main()
+    # ut.main()
