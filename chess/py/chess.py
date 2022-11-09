@@ -282,7 +282,7 @@ def is_check_mate(board:list[list[str|Piece]], player_moves:list[Move], holder_m
             move(pl_mv._from, pl_mv.to, next_move_board, player_moves, {'turn':pl_mv.piece._color})
             clear()
             show_board(next_move_board)
-            sleep(3)
+            sleep(5)
 
 
 def show_board(board:list[list[str|Piece]]):
