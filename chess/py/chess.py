@@ -1,6 +1,7 @@
 import os
 from termcolor import cprint
 from time import sleep
+import copy
 
 """
 All moves that do not need to know other pieces moves in the pieces class
@@ -274,11 +275,11 @@ def is_check_mate(board:list[list[str|Piece]], player_moves:list[Move], holder_m
     # Return if the current player is in check_state
 
     check_mate = False
-    next_move_board = board.copy() 
+    next_move_board = copy.deepcopy(board)
 
     for pl_mv in player_moves:
         if isinstance(pl_mv.piece, King):
-            next_move_board = board.copy()
+            next_move_board = copy.deepcopy(board)
             move(pl_mv._from, pl_mv.to, next_move_board, player_moves, {'turn':pl_mv.piece._color})
             clear()
             show_board(next_move_board)
