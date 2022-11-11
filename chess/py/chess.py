@@ -253,7 +253,7 @@ def possible_moves(board:list[list], turn:str) -> list[Move]:
             if mv.piece._color == turn: psb_mv_player.remove(mv)
             else: psb_mv_holder.remove(mv)
 
-        is_check_mate(board, psb_mv_player, psb_mv_holder)
+        # is_check_mate(board, psb_mv_player, psb_mv_holder)
                         
         return psb_mv_player, psb_mv_holder
 
@@ -270,7 +270,7 @@ def is_check(player_moves:list[Move], holder_moves:list[Move]) -> bool:
     return check
 
 
-def is_check_mate(board:list[list[str|Piece]], player_moves:list[Move], holder_moves:list[Move]) -> bool:
+def is_check_mate(board:list[list[str or Piece]], player_moves:list[Move], holder_moves:list[Move]) -> bool:
     
     # Return if the current player is in check_state
 
@@ -286,7 +286,7 @@ def is_check_mate(board:list[list[str|Piece]], player_moves:list[Move], holder_m
             sleep(5)
 
 
-def show_board(board:list[list[str|Piece]]):
+def show_board(board:list[list[str or Piece]]):
 
     print('   * * * * * * * * * *')
     for index_lst, lst in enumerate(board):
@@ -300,7 +300,7 @@ def show_board(board:list[list[str|Piece]]):
         print('*')
     print('   * * * * * * * * * *\n     a b c d e f g h')
 
-def show(board:list[list[str|Piece]], game_info:dict) -> None:
+def show(board:list[list[str or Piece]], game_info:dict) -> None:
 
         clear()
         show_board(board)
@@ -322,7 +322,7 @@ def ask_move() -> tuple[str, str]:
         _from, to = tuple(ipt.split(' '))
     return _from, to
 
-def move(_from:str, to:str, board:list[list[str|Piece]], psb_mv:list[Move], game_info:dict) -> None:
+def move(_from:str, to:str, board:list[list[str or Piece]], psb_mv:list[Move], game_info:dict) -> None:
         save_move:Move = None
         for move in psb_mv:
             if move._from == _from and move.to == to:
@@ -417,7 +417,7 @@ _TEST_A = [[Rook(Piece.BLACK),_EMPTY_CASE,_EMPTY_CASE,_EMPTY_CASE,King(Piece.BLA
 def main():
 
     ### Initialize board ###
-    game_board = _TEST_A
+    game_board = _INIT_BOARD
     initialize_pos(game_board)
     game_info = {
         'turn' : Piece.WHITE,
@@ -432,11 +432,11 @@ def main():
     while not game_info['check_mate']:
         show(game_board, game_info)
 
-        print('\nplayer move :')
-        for mv in psb_mv: print(mv)
+        # print('\nplayer move :')
+        # for mv in psb_mv: print(mv)
 
-        print('\nhd move :')
-        for mv in hd_mv: print(mv)
+        # print('\nhd move :')
+        # for mv in hd_mv: print(mv)
 
         _from, to = ask_move()
         move(_from, to, game_board, psb_mv, game_info)
